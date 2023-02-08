@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Студенты</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="./css/style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <script src="./js/index.js"></script>
+</head> 
+<body>
+    <div class="container">
+        <form class="form">
+            <div class="mb-3">
+                <label for="name" class="form-label">Введите имя</label>
+                <input type="text" class="form-control" id="name">
+            </div>
+            <div class="mb-3">
+                <label for="surname" class="form-label">Введите фамилию</label>
+                <input type="text" class="form-control" id="surname">
+            </div>
+            <div class="mb-3">
+                <label for="middle-name" class="form-label">Введите отчество</label>
+                <input type="text" class="form-control" id="middle-name">
+            </div>
+            <div class="mb-3">
+                <label for="birthday" class="form-label">Введите дату рождения</label>
+                <input type="date" class="form-control" id="birthday">
+            </div>
+            <div class="mb-3">
+                <label for="start-year" class="form-label">Введите год начала обучения</label>
+                <input type="number" class="form-control" id="start-year">
+            </div>
+            <div class="mb-3">
+                <label for="faculty" class="form-label">Введите факультет</label>
+                <input type="text" class="form-control" id="faculty">
+            </div>
+            <div class="mb-1">
+                <label class="form-error"></label>
+            </div>
+            <button type="submit" class="btn btn-primary" id="add-student">Отправить</button>
+            <button type="reset" class="btn btn-danger" id="close-form">Закрыть окно</button>
+        </form>
+        <button class="add-student btn btn-success mb-3">Добавить студента</button>
+        <div class="filters mb-3">
+            <form class="d-flex filter-form">
+                <h3>Фильтр:</h3>
+                <input type="text" id="full-name-filter" class="form-control" placeholder="Фамилия/имя/отчество">
+                <input type="text" id="faculty-filter" class="form-control" placeholder="Факультет">
+                <input type="number" id="start-year-filter" class="form-control" placeholder="Год начала обучения">
+                <input type="number" id="end-year-filter" class="form-control" placeholder="Год окончания обучения">
+                <button type="submit" class="btn btn-primary" id="filter-btn">Фильтр</button>
+                <button type="reset" class="btn btn-danger" id="filter-reset">Сбросить</button>
+            </form>
+        </div>
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th scope="col"><a class="sort-full-name filter-link">Фамилия Имя Отчество</a></th>
+                    <th scope="col"><a class="sort-faculty filter-link">Факультет</a></th>
+                    <th scope="col"><a class="sort-birthday filter-link">Дата рождения (возр.)</a></th>
+                    <th scope="col"><a class="sort-years filter-link">Годы обучения (курс)</a></th>
+                    <th scope="col">Удалить?</th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+                <tr class="list-empty display-none">
+                    <td colspan="5" align="center">Список студентов пуст</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
