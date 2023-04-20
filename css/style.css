@@ -6,32 +6,11 @@
     padding-top: 50px;
 }
 
-.form {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 500px;
-    padding: 30px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .2);
-    margin: 0 auto;
-    transform: translateX(-50%) translateY(-50%);
-    opacity: 0;
-    transition: opacity .2s ease-in-out;
-    visibility: hidden;
+.file-uploader-input {
+  width: 500px;
 }
 
-.filter-link{
-    cursor: pointer;
-}
-
-.form-error {
-    opacity: 0;
-    visibility: hidden;
-    color: crimson;
-}
-
-.filter-form {
+.filter__form {
     gap: 10px;
 }
 
@@ -42,4 +21,8 @@
 
 .display-none {
     display: none;
+}
+
+.badge {
+  font-size: 14px;
 }

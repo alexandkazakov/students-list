@@ -1,243 +1,84 @@
 (() => {
-    let students = [];
-
-    function clearTable() {
-        let trItems = document.querySelectorAll('.tr');
-        trItems.forEach((trItem) => {
-            trItem.remove();
-        })
+  function filterNumbers(arr, prop, value) {
+    const result = [];
+    for (const item of arr) {
+      if (String(item[prop]).includes(value)) {
+        result.push(item);
+      }
     }
+    return result;
+  }
 
-    function parseStudents(arr) {
-        clearTable();
-        arr.forEach((student) => {
-            parseStudent(student);
-        });
+  function uploadFile(fileUploader, arr) {
+    const selectedFile = fileUploader.files[0];
+    
+    const reader = new FileReader();
+    reader.readAsBinaryString(selectedFile);
+    reader.onerror = event => console.error(`Файл не может быть прочитан. Ошибка: ${event.target.error.message}`);
+    reader.onload = event => {
+      const data = event.target.result;
+      const workbook = XLSX.read(data, { type: 'binary' });
+      workbook.SheetNames.forEach(sheetName => {
+        const rowArray = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+        rowArray.forEach(item => {
+          arr.push({
+            fullNumber: item.Name.toUpperCase(),
+            letters: (item.Name.substr(0, 1) + item.Name.substr(4, 2)).toUpperCase(),
+            numbers: item.Name.substr(1, 3),
+            region: item.Name.slice(6)
+          });
+        })
+      });
     }
+  }
 
-    function parseStudent(student) {
-        let tr = document.createElement('tr');
-        let fullName = document.createElement('td');
-        let faculty = document.createElement('td');
-        let birthday = document.createElement('td');
-        let years = document.createElement('td');
-        let deleteItem = document.createElement('td');
-        let deleteBtn = document.createElement('button');
+  document.addEventListener('DOMContentLoaded', () => {
+    const fileUploader = document.getElementById('file-uploader-input');
+    const filterLettersInput = document.getElementById('filter__letters');
+    const filterNumbersInput = document.getElementById('filter__numbers');
+    const filterRegionInput = document.getElementById('filter__region');
+    const filterBtn = document.getElementById('filter-btn');
+    const filterReset = document.getElementById('filter-reset');
+    const resultBlock = document.getElementById('result');
 
-        student.birthday = new Date(student.birthday);
-        let [year, month, day] = [String(student.birthday.getFullYear()), String(student.birthday.getMonth() + 1), String(student.birthday.getDate())];
-        if (month < 10) {
-            month = '0' + month;
-        };
-        if (day < 10) {
-            day = '0' + day;
-        }
-        let age = Math.abs(new Date(Date.now() - student.birthday).getUTCFullYear() - 1970);
+    const numbers = [];
 
-        fullName.textContent = student.surname + ' ' + student.name + ' ' + student.middleName;
-        faculty.textContent = student.faculty;
-        birthday.textContent = day + '.' + month + '.' + year + ` (${age})`;
+    fileUploader.addEventListener('change', () => {
+      uploadFile(fileUploader, numbers);
+    });
 
-        if ((new Date() - new Date(student.startYear + 4, 8, 1)) > 0) {
-            years.textContent = student.startYear + '-' + (student.startYear + 4) + ' (закончил)';
-        } else {
-            years.textContent = student.startYear + '-' + (student.startYear + 4) + ' (' + (Math.abs(new Date(Date.now() - new Date(student.startYear, 8, 1)).getFullYear() - 1970) + 1) + ' курс)';
-        }
+    filterBtn.addEventListener('click', event => {
+      event.preventDefault();
+      resultBlock.textContent = '';
+      let numbersFiltered = [...numbers];
 
-        tr.classList.add('tr');
-        deleteBtn.classList.add('btn', 'btn-danger');
-        deleteBtn.textContent = 'Удалить';
+      if (!fileUploader.files[0]) {
+        resultBlock.textContent = 'Выберите файл для поиска';
+        return;
+      }
 
-        deleteBtn.addEventListener('click', () => {
-            if (confirm('Вы уверены?')) {
-                students.splice(students.indexOf(student), 1);
-                localStorage.setItem('students', JSON.stringify(students));
-                if (students.length !== 0) {
-                    parseStudents(students);
-                } else if (students.length === 0) {
-                    listEmpty.classList.remove('display-none');
-                    clearTable();
-                };
-            }
-        })
-        
-        deleteItem.append(deleteBtn);
-        tr.append(fullName);
-        tr.append(faculty);
-        tr.append(birthday);
-        tr.append(years);
-        tr.append(deleteItem);
-        tbody.append(tr);
-    }
+      if (filterLettersInput.value === '' && filterNumbersInput.value === '' && filterRegionInput.value === '') {
+        resultBlock.textContent = 'Введите данные для поиска';
+        return;
+      }
 
-    function sortUsers(arr, prop, dir = false) {
-        return arr.sort( (a, b) => (dir ? a[prop] > b[prop] : a[prop] < b[prop]) ? -1 : 1 );
-    }
+      if (filterLettersInput.value !== '') numbersFiltered = filterNumbers(numbersFiltered, 'letters', filterLettersInput.value.toUpperCase());
+      if (filterNumbersInput.value !== '') numbersFiltered = filterNumbers(numbersFiltered, 'numbers', filterNumbersInput.value);
+      if (filterRegionInput.value !== '') numbersFiltered = filterNumbers(numbersFiltered, 'region', filterRegionInput.value);
 
-    function filterUsers(arr, prop, value) {
-        let result = [];
-        for (let item of arr) {
-            if (String(item[prop]).includes(value)) {
-                result.push(item);
-            }
-        }
-        return result;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const tbody = document.getElementById('tbody');
-        const form = document.querySelector('.form');
-        const listEmpty = document.querySelector('.list-empty');
-        const sortFullNameLink = document.querySelector('.sort-full-name');
-        const sortFacultyLink = document.querySelector('.sort-faculty');
-        const sortBirthdayLink = document.querySelector('.sort-birthday');
-        const sortYearsLink = document.querySelector('.sort-years');
-        const filterFullNameInput = document.getElementById('full-name-filter');
-        const filterFacultyInput = document.getElementById('faculty-filter');
-        const filterStartYearInput = document.getElementById('start-year-filter');
-        const filterEndYearInput = document.getElementById('end-year-filter');
-        const filterBtn = document.getElementById('filter-btn');
-        const filterReset = document.getElementById('filter-reset');
-        const addStudentsBtn = document.querySelector('.add-student');
-        const closeFormBtn = document.getElementById('close-form');
-
-        let restoredStudents = JSON.parse(localStorage.getItem('students'))
-        if (restoredStudents) students = restoredStudents;
-        
-        if (students.length !== 0) {
-            parseStudents(students);
-        } else if (students.length === 0) {
-            listEmpty.classList.remove('display-none');
-        };
-
-        addStudentsBtn.addEventListener('click', () => {
-            form.classList.toggle('visible');
-        })
-
-        closeFormBtn.addEventListener('click', () => {
-            form.classList.remove('visible');
-        })
-
-        form.addEventListener('submit', (elem) => {
-            elem.preventDefault();
-            form.classList.remove('visible');
-
-            let inputName = document.getElementById('name');
-            let inputSurname = document.getElementById('surname');
-            let inputMiddleName = document.getElementById('middle-name');
-            let inputBirthday = document.getElementById('birthday');
-            let inputStartYear = document.getElementById('start-year');
-            let inputFaculty = document.getElementById('faculty');
-            let errorLabel = document.querySelector('.form-error');
-
-            let inputNameValue = inputName.value.trim();
-            let inputSurnameValue = inputSurname.value.trim();
-            let inputMiddleNameValue = inputMiddleName.value.trim();
-            let inputBirthdayValue = inputBirthday.valueAsDate;
-            let inputStartYearValue = inputStartYear.value.trim();
-            let inputFacultyValue = inputFaculty.value.trim();
-
-            let err = (!inputNameValue) ? 'Введите имя' :
-                (!inputSurnameValue) ? 'Введите фамилию' :
-                (!inputMiddleNameValue) ? 'Введите отчество' :
-                ((!inputBirthdayValue) || (inputBirthdayValue < new Date(1900, 0, 1)) || (inputBirthdayValue > Date.now())) ? 'Введите дату рождения' :
-                ((!inputStartYearValue) || (inputStartYearValue < 2000) || (inputStartYearValue > new Date().getFullYear())) ? 'Введите год начала обучения' :
-                (!inputFacultyValue) ? 'Введите факультет' :
-                null;
-
-            if (err) {
-                errorLabel.textContent = err;
-                errorLabel.classList.add('visible');
-            } else {
-                errorLabel.classList.remove('visible');
-                students.push(
-                    {
-                        name: inputNameValue,
-                        surname: inputSurnameValue,
-                        middleName: inputMiddleNameValue,
-                        birthday: inputBirthdayValue,
-                        startYear: +inputStartYearValue,
-                        faculty: inputFacultyValue
-                    }
-                );
-                listEmpty.classList.add('display-none');
-                localStorage.setItem('students', JSON.stringify(students));
-                parseStudents(students);
-
-                inputName.value = '';
-                inputSurname.value = '';
-                inputMiddleName.value = '';
-                inputBirthday.value = '';
-                inputStartYear.value = '';
-                inputFaculty.value = '';
-            }
-        })
-        
-        let sortFullNameDir = false;
-        sortFullNameLink.addEventListener('click', () => {
-            if (sortFullNameDir) {
-                parseStudents(sortUsers(students, 'surname', true));
-                sortFullNameDir = false;
-            } else {
-                parseStudents(sortUsers(students, 'surname'));
-                sortFullNameDir = true;
-            }
-        });
-
-        let sortFacultyDir = false;
-        sortFacultyLink.addEventListener('click', () => {
-            if (sortFacultyDir) {
-                parseStudents(sortUsers(students, 'faculty', true));
-                sortFacultyDir = false;
-            } else {
-                parseStudents(sortUsers(students, 'faculty'));
-                sortFacultyDir = true;
-            }
-        });
-
-        let sortBirthdayDir = false;
-        sortBirthdayLink.addEventListener('click', () => {
-            if (sortBirthdayDir) {
-                parseStudents(sortUsers(students, 'birthday', true));
-                sortBirthdayDir = false;
-            } else {
-                parseStudents(sortUsers(students, 'birthday'));
-                sortBirthdayDir = true;
-            }
-        });
-
-        let sortYearsDir = false;
-        sortYearsLink.addEventListener('click', () => {
-            if (sortYearsDir) {
-                parseStudents(sortUsers(students, 'startYear', true));
-                sortYearsDir = false;
-            } else {
-                parseStudents(sortUsers(students, 'startYear'));
-                sortYearsDir = true;
-            }
-        });
-
-        filterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            let studentsFiltered = [...students];
-            for (const student of studentsFiltered) {
-                student.fullName = student.surname + ' ' + student.name + ' ' + student.middleName;
-                student.endYear = student.startYear + 4;
-            }
-
-            if (filterFullNameInput.value !== '') studentsFiltered = filterUsers(studentsFiltered, 'fullName', filterFullNameInput.value);
-            if (filterFacultyInput.value !== '') studentsFiltered = filterUsers(studentsFiltered, 'faculty', filterFacultyInput.value);
-            if (filterStartYearInput.value !== '') studentsFiltered = filterUsers(studentsFiltered, 'startYear', filterStartYearInput.value);
-            if (filterEndYearInput.value !== '') studentsFiltered = filterUsers(studentsFiltered, 'endYear', filterEndYearInput.value);
-
-            parseStudents(studentsFiltered);
-        })
-
-        filterReset.addEventListener('click', () => {
-            parseStudents(students);
-        })
-
-        window.tbody = tbody;
-        window.listEmpty = listEmpty;
+      const resultSpan = document.createElement('span');
+      if (numbersFiltered.length > 0) {
+        resultSpan.classList.add('badge', 'text-bg-success');
+        resultSpan.textContent = 'Номер найден';
+      } else {
+        resultSpan.classList.add('badge', 'text-bg-danger');
+        resultSpan.textContent = 'Номер не найден';
+      }
+      resultBlock.append(resultSpan);
     })
+
+    filterReset.addEventListener('click', () => {
+      resultBlock.textContent = '';
+    });
+  })
 })();
